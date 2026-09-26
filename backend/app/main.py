@@ -27,9 +27,15 @@ app.include_router(meetings_router, prefix="/meetings")
 app.include_router(ws_router)
 
 
+from seed import seed_data
+
 @app.on_event("startup")
 def on_startup():
     create_tables()
+    try:
+        seed_data()
+    except Exception as e:
+        print(f"Seed warning on startup: {e}")
 
 
 @app.get("/")

@@ -10,17 +10,11 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# CORS configuration
-origins = [
-    settings.FRONTEND_URL,
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "*"
-]
-
+# CORS — allow Vercel domain + localhost for development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Open CORS for easy local dev & deployment
+    allow_origins=settings.cors_origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",  # wildcard for preview deployments
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -33,8 +27,6 @@ app.include_router(meetings_router, prefix="/meetings")
 app.include_router(ws_router)
 
 
-
-
 @app.on_event("startup")
 def on_startup():
     create_tables()
@@ -42,7 +34,12 @@ def on_startup():
 
 @app.get("/")
 def read_root():
-    return {"message": "Zoom Clone API Server is running", "docs": "/docs"}
+    return {
+        "message": "Zoom Clone API Server is running",
+        "docs": "/docs",
+        "env": settings.APP_ENV,
+        "frontend_url": settings.FRONTEND_URL,
+    }
 
 
 @app.get("/api/health")
